@@ -2,6 +2,8 @@
 
 Scattered data approximation with multigrid relaxation
 
+![Scattered data image from laboratory slides](assets/slides-image.png)
+
 ## Instructions
 
 - Interpolate/approximate scattered data
