@@ -1,14 +1,14 @@
 // OpenCL kernel to perform relaxation step
-__kernel void relax(__global float* u, __global float* f, __global float* unew, int N, int M) {
+__kernel void relax_kernel(__global float* u, __global float* f, __global float* unew, int N, int M) {
     // Calculate the current thread index
     int x = get_global_id(0);
     int y = get_global_id(1);
 
-    // Check if the thread index is within the valid range
-    if (x > 0 && x < N - 1 && y > 0 && y < M - 1) {
-        // Perform the relaxation operation
-        unew[y * M + x] = 0.25f * (u[(y - 1) * M + x] + u[(y + 1) * M + x] +
-                                   u[y * M + x - 1] + u[y * M + x + 1] - f[y * M + x]);
+    if (x > 0 && x < N-1 && y > 0 && y < M-1) {
+        float u_new_value = 0.25f * (u[(x-1)*M + y] + u[(x+1)*M + y] + u[x*M + (y-1)] + u[x*M + (y+1)] - f[x*M + y]);
+        unew[x*M + y] = u_new_value;
+    } else {
+        unew[x*M + y] = unew[x*M + y];
     }
 }
 
