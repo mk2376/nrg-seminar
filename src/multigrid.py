@@ -91,7 +91,7 @@ def main():
     M = np.int32(input_image.shape[1])
     print("NxM", N, M)
     num_cycles = 1
-    num_relaxations = 5
+    num_relaxations = 100
 
     # OpenCL context
     context = cl.create_some_context()
@@ -123,14 +123,14 @@ def main():
     # Run multigrid
     for cycle in range(num_cycles):
         for relax in range(num_relaxations):
-            print(f.get())
-            print(f.dtype)
+            # print(f.get())
+            # print(f.dtype)
             relax_kernel(program, queue, u, f, unew, N, M)
-            print("unew post", np.min(unew.get()), np.max(unew.get()), np.mean(unew.get()))
+            # print("unew post", np.min(unew.get()), np.max(unew.get()), np.mean(unew.get()))
             u, unew = unew, u
         
         # Check values in u array
-        print("u post", np.min(u.get()), np.max(u.get()), np.mean(u.get()))
+        # print("u post", np.min(u.get()), np.max(u.get()), np.mean(u.get()))
 
     # Save output image
     output_image = u.get()

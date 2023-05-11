@@ -26,7 +26,7 @@ __kernel void restrict_kernel(__global float* r, __global float* r2, int N) {
 }
 
 // OpenCL kernel to perform prolongation step
-__kernel void prolong(__global float* u, __global float* u2, int N) {
+__kernel void prolong_kernel(__global float* u, __global float* u2, int N) {
     // Calculate the current thread index
     int x = get_global_id(0);
     int y = get_global_id(1);
