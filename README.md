@@ -2,6 +2,33 @@
 
 Scattered data approximation with multigrid relaxation
 
+## Usage
+
+Install deps:
+
+```bash
+make deps
+```
+
+Besides above, make sure you install the folowing packages oin your system:
+
+```bash
+yay -S opencv
+yay -S python-opencv
+
+# verify installation 
+pkg-config --modversion opencv4 # 4.7.0
+python -c "import cv2; print(cv2.__version__)" # 4.7.0
+
+yay -S pocl
+```
+
+Run:
+
+```bash
+make run
+```
+
 ![Scattered data image from laboratory slides](assets/slides-image.png)
 
 ## Instructions
