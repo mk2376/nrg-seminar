@@ -7,7 +7,7 @@ echo:
 
 ## Runs the code
 run:
-	python src/multigrid.py assets/dotted-pattern-picture-horse-rider-vector-illustration.jpg
+	PYOPENCL_CTX="" python src/multigrid.py assets/dotted-pattern-picture-horse-rider-vector-illustration.jpg
 
 ## Install dependencies
 deps:
