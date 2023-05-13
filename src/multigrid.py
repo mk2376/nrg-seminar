@@ -45,6 +45,7 @@ def generate_divergence_field(image):
 
     # Compute divergence
     divergence_field = divergence(field_x, field_y)
+    
     print("divergence_field", np.min(divergence_field), np.max(divergence_field), np.mean(divergence_field))  # Print min, max and mean values
     save_image('assets/divergence_field.png', divergence_field)
 
@@ -67,22 +68,32 @@ def save_image(filename, image):
     imageio.v3.imwrite(filename, image)
 
 # Function to perform relaxation in the multigrid method
-def relax_kernel(program, queue, u, f, unew, N, M):
+def relax_kernel(program, queue, u, u_new, N, M):
     global_work_size = (N, M)
     local_work_size = None # (2, 2)  # or whatever value is appropriate for your hardware
-    program.relax_kernel(queue, global_work_size, local_work_size, u.data, f.data, unew.data, N, M)
+    program.relax_kernel(queue, global_work_size, local_work_size, u.data, u_new.data, N, M)
+
+# Function to calculate residual
+def residual_kernel(program, queue, u, f, res, N, M):
+    global_work_size = (N, M)
+    local_work_size = None # (2, 2)  # or whatever value is appropriate for your hardware
+    program.residual_kernel(queue, global_work_size, local_work_size, u.data, f.data, res.data, N, M)
 
 # Function to perform restriction in the multigrid method
-def restrict_kernel(program, queue, r, r2, N, M):
-    global_work_size = (N, M)
+def restrict_kernel(program, queue, res, r2, N, M):
+    halfN = np.int32(N//2);
+    halfM = np.int32(M//2);
+    global_work_size = (halfN, halfM)
     local_work_size = None # (2, 2) # or whatever value is appropriate for your hardware
-    program.restrict_kernel(queue, global_work_size, local_work_size, r.data, r2.data, N, M)
+    program.restrict_kernel(queue, global_work_size, local_work_size, res.data, r2.data, N, M)
 
 # Function to perform prolongation in the multigrid method
-def prolong_kernel(program, queue, u, u2, N, M):
-    global_work_size = (N, M)
+def prolong_kernel(program, queue, r2, u, N, M):
+    halfN = np.int32(N//2);
+    halfM = np.int32(M//2);
+    global_work_size = (halfN, halfM)
     local_work_size = None # (2, 2)  # or whatever value is appropriate for your hardware
-    program.prolong_kernel(queue, global_work_size, local_work_size, u.data, u2.data, np.int32(N), np.int32(M))
+    program.prolong_kernel(queue, global_work_size, local_work_size, u.data, r2.data, N, M)
 
 # Main function
 def main():
@@ -98,8 +109,11 @@ def main():
     input_image = load_image(args.input_file)
     N = np.int32(input_image.shape[0])
     M = np.int32(input_image.shape[1])
-    num_cycles = 1
-    num_relaxations = 10
+    halfN = np.int32(N//2);
+    halfM = np.int32(M//2);
+    
+    num_cycles = 100
+    num_relaxations = 1
 
     # OpenCL context
     context = cl.create_some_context()
@@ -108,33 +122,42 @@ def main():
     # Allocate memory
     u = cl_array.to_device(queue, np.zeros((N, M), dtype=np.float32))
     f = cl_array.to_device(queue, generate_divergence_field(input_image).astype(np.float32))  # Convert to float32
-    unew = cl_array.to_device(queue, np.zeros((N, M), dtype=np.float32))
-    r = cl_array.to_device(queue, np.zeros((N, M), dtype=np.float32))  # For restriction
-    r2 = cl_array.to_device(queue, np.zeros((N//2, M//2), dtype=np.float32))  # For restriction
-    u2 = cl_array.to_device(queue, np.zeros((N*2, M*2), dtype=np.float32))  # For prolongation
+    u_new = cl_array.to_device(queue, np.zeros((N, M), dtype=np.float32))
+    r2 = cl_array.to_device(queue, np.zeros((halfN, halfM), dtype=np.float32))  # For restriction
+    r2_new = cl_array.to_device(queue, np.zeros((halfN, halfM), dtype=np.float32))  # For relaxation
 
     # Load kernel
     with open('src/multigrid.cl', 'r') as file_obj:
         fstr = "".join(file_obj.readlines())
     program = cl.Program(context, fstr).build()
-
+    
     # Run multigrid
     for cycle in range(num_cycles):
         for relax in range(num_relaxations):
-            relax_kernel(program, queue, u, f, unew, N, M)
-            u, unew = unew, u
+            relax_kernel(program, queue, u, u_new, N, M)
+            u, u_new = u_new, u
+            
+        # Calculate residual
+        res = cl_array.to_device(queue, np.zeros((N, M), dtype=np.float32))  # Buffer for the residual
+        residual_kernel(program, queue, u, f, res, N, M)
 
         # Apply restriction
-        restrict_kernel(program, queue, u, r2, N, M)
-        u, r2 = r2, u  # Downsample to the next grid level
-
-        # Perform relaxation on the coarser grid...
+        restrict_kernel(program, queue, res, r2, N, M) # Downsample to the next grid level
+        # print("r2", np.min(r2.get()), np.max(r2.get()), np.mean(r2.get()))  # Print min, max and mean values
+        
+        # Relaxation on the coarser grid
+        for relax in range(num_relaxations):
+            relax_kernel(program, queue, r2, r2_new, halfN, halfM)
+            r2, r2_new = r2_new, r2
 
         # Apply prolongation
-        prolong_kernel(program, queue, u, u2, N//2, M//2)
-        u, u2 = u2, u  # Upsample back to the original grid level
-
-        # Perform relaxation on the original grid...
+        prolong_kernel(program, queue, r2, u, N, M)
+        # print("u", np.min(u.get()), np.max(u.get()), np.mean(u.get()))  # Print min, max and mean values
+        
+        # Perform relaxation on the original grid
+        for relax in range(num_relaxations):
+            relax_kernel(program, queue, u, u_new, N, M)
+            u, u_new = u_new, u
 
     # Save output image
     output_image = u.get()
