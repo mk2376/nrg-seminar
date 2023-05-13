@@ -1,14 +1,14 @@
-// OpenCL kernel to perform relaxation step
-__kernel void relax_kernel(__global float* u, __global float* u_new, int N, int M) {
+// OpenCL kernel to perform Jacobi relaxation step (Poisson equation)
+__kernel void relax_kernel(__global float* u, __global float* u_new, __global float* f, int N, int M, float h_x, float h_y) {
     // Calculate the current thread index
     int x = get_global_id(0);
     int y = get_global_id(1);
 
     if (x > 0 && x < N-1 && y > 0 && y < M-1) {
-        float u_new_value = 0.25f * (u[(x-1)*M + y] + u[(x+1)*M + y] + u[x*M + (y-1)] + u[x*M + (y+1)]);
+        float u_new_value = 0.5f * ((u[(x-1)*M + y] + u[(x+1)*M + y]) / (h_x * h_x) + (u[x*M + (y-1)] + u[x*M + (y+1)]) / (h_y * h_y) + f[x*M + y]) / ((2.0f / (h_x * h_x)) + (2.0f / (h_y * h_y)));
         u_new[x*M + y] = u_new_value;
     } else {
-        u_new[x*M + y] = u[x*M + y];
+        u_new[x*M + y] = u[x*M + y]; // If you're using Dirichlet boundary conditions, this line can be: u_new[x*M + y] = 0.0f;
     }
 }
 
