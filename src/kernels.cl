@@ -55,7 +55,7 @@ __kernel void restrict_kernel(__global float* r, __global float* r2, int N, int 
 }
 
 // OpenCL kernel to perform prolongation step
-__kernel void prolong_kernel(__global float* u, __global float* r2, int N, int M) {
+__kernel void prolong_kernel(__global float* r2, __global float* u, int N, int M) {
     // Calculate the current thread index
     int x = get_global_id(0);
     int y = get_global_id(1);
@@ -71,9 +71,9 @@ __kernel void prolong_kernel(__global float* u, __global float* r2, int N, int M
         // Perform the prolongation operation by nearest-neighbor interpolation
         float new_value = r2[x*halfM + y];
 
-        u[x2*M + y2] = new_value;
-        u[x2*M + (y2 + 1)] = new_value;
-        u[(x2 + 1)*M + y2] = new_value;
-        u[(x2 + 1)*M + (y2 + 1)] = new_value;
+        u[x2*M + y2] += new_value;
+        u[x2*M + (y2 + 1)] += new_value;
+        u[(x2 + 1)*M + y2] += new_value;
+        u[(x2 + 1)*M + (y2 + 1)] += new_value;
     }
 }
