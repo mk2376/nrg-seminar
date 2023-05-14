@@ -43,6 +43,6 @@ def generate(image_input):
     divergence_field = divergence(field_x, field_y)
     
     print("divergence_field", np.min(divergence_field), np.max(divergence_field), np.mean(divergence_field))  # Print min, max and mean values
-    image.save('assets/divergence_field.png', divergence_field)
+    image.save('outputs/divergence_field.jpg', divergence_field)
 
     return divergence_field

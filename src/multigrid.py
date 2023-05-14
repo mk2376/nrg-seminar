@@ -9,7 +9,7 @@ import divergence_field
 import kernels
 
 tolerance = 1e-5  # Set your desired tolerance
-max_level = 1  # Set your desired maximum level
+max_level = 0  # Set your desired maximum level
 
 num_cycles = 1
 num_relaxations = 1
@@ -25,7 +25,7 @@ def multigrid_vcycle(program, queue, u, f, N, M, level, prev_res_norm):
         
         print("u", np.min(u.get()), np.max(u.get()), np.mean(u.get()))  # Print min, max and mean values
         output_image = u.get()
-        output_file = "output_" + str(i) + ".jpg"
+        output_file = "outputs/output_" + str(i) + ".jpg"
         image.save(output_file, output_image)
 
     # Initialize residual norm
@@ -107,7 +107,7 @@ def main():
 
     # Save output image
     output_image = u.get()
-    output_file = filename + '_output' + file_extension
+    output_file = "outputs/final_output" + file_extension
     image.save(output_file, output_image)
 
 # If this script is the main module, run the main function
