@@ -3,7 +3,7 @@ import argparse
 import numpy as np
 import pyopencl as cl
 import pyopencl.array as cl_array
-from scipy import ndimage
+from scipy.ndimage import gaussian_filter
 
 import image
 import divergence_field
@@ -138,7 +138,7 @@ def main():
     output_image = (output_image - 1)*-1
     
     # Filter
-    output_image = np.where(output_image < 0.75, 0, output_image)
+    output_image = np.where(output_image < 0.78, 0, output_image)
     
     output_file = "outputs/final_output" + file_extension
     image.save(output_file, output_image)

@@ -7,10 +7,16 @@ echo:
 
 ## Runs the code
 run:
-	PYOPENCL_CTX="" python src/multigrid.py assets/dotted-pattern-picture-horse-rider-vector-illustration.jpg
+	PYOPENCL_CTX="" python src/multigrid.py assets/horse-rider.jpg
 
 run2:
-	PYOPENCL_CTX="" python src/multigrid.py assets/vector-symbol-bike-silhouette-dotted-outline-illustration-line-art-style.jpg
+	PYOPENCL_CTX="" python src/multigrid.py assets/eiffel-tower.jpg
+
+run3:
+	PYOPENCL_CTX="" python src/multigrid.py assets/bike.jpg
+
+run4:
+	PYOPENCL_CTX="" python src/multigrid.py assets/world-map.jpg
 
 ## Install dependencies
 deps:

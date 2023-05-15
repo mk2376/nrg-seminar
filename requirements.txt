@@ -2,5 +2,6 @@ opencv-python
 pyopencl
 numpy
 scipy
+scikit-image
 
 imageio

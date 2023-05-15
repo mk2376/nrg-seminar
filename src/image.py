@@ -5,7 +5,7 @@ import imageio
 # Function to apply Gaussian blur and normalize the image
 def load(filename):
     image_input = imageio.v3.imread(filename, mode='L')
-    image_input = gaussian_filter(image_input, 1)
+    # image_input = gaussian_filter(image_input, 1)
     image_input = image_input.astype(np.float32)  # Convert image to float32 before division
     
     # Normalize to [0, 1]
