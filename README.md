@@ -10,16 +10,10 @@ Install deps:
 make deps
 ```
 
-Besides above, make sure you install the folowing packages oin your system:
+Besides above, there is additional software that you can install (optional):
 
 ```bash
-yay -S opencv
-yay -S python-opencv
-
-# verify installation 
-pkg-config --modversion opencv4 # 4.7.0
-python -c "import cv2; print(cv2.__version__)" # 4.7.0
-
+# use next command to install POCL, Portable OpenCL is an open-source implementation of OpenCL which can be easily adapted for new targets (like CPUs for example)
 yay -S pocl
 ```
 
@@ -28,8 +22,6 @@ Run:
 ```bash
 make run
 ```
-
-![Scattered data image from laboratory slides](assets/slides-image.png)
 
 ## Instructions
 
@@ -41,13 +33,14 @@ make run
 - Employ a multi-resolution approach (multigrid) so that all error modes are eliminated quickly
 
 In many cases in computer graphics, we are faced with unstructured data samples, such as point clouds or path
-tracing rays. Given a finite set of scattered samples, your task is to guess the function values in the entire domain.
-Many methods exist for this task, taking significantly different approaches. One of them involves solving the Laplacian
-equation on a grid (e.g., pixels in an image). However, just straightforwardly discretizing the equation results in
-extremely slow convergence. The goal of this seminar is to explore and implement the multigrid method on the GPU.
-The multigrid method effectively accelerates the convergence of low-frequency signals by discretizing and solving the
-equation in different resolutions and then systematically distributing the residual error.
+tracing rays. Given a finite set of scattered samples, your task is to guess the function values in the entire domain. Many methods exist for this task, taking significantly different approaches. One of them involves solving the Laplacian equation on a grid (e.g., pixels in an image). However, just straightforwardly discretizing the equation results in extremely slow convergence. The goal of this seminar is to explore and implement the multigrid method on the GPU. The multigrid method effectively accelerates the convergence of low-frequency signals by discretizing and solving the equation in different resolutions and then systematically distributing the residual error.
+
+![Scattered data image from laboratory slides](assets/slides-image.png)
 
 References:
 [1] K. Anjyo, J. P. Lewis, and F. Pighin, “Scattered data interpolation for computer graphics”,
 ACM SIGGRAPH 2014 Courses, ACM Press, 2014, doi: 10.1145/2614028.2615425
+
+## Data
+
+Images under `assets/` are not my own work and may be licensed by a third party. They are only provided as examples.

@@ -46,11 +46,19 @@ def generate(image_input):
     # Compute divergence
     divergence_field = divergence(field_x, field_y)
     
-    # Invert white spots into black (so the divergence is a single color)
+    # Invert white spots into black (so the divergence is a single color) (currently [-0.5, 0.5])
     divergence_field = -np.abs(divergence_field)
-    # or divergence_field = np.where(divergence_field > 0, -divergence_field, divergence_field)
     
-    print("divergence_field", np.min(divergence_field), np.max(divergence_field), np.mean(divergence_field))  # Print min, max and mean values
+    # Convert it into [0, 1] range (currently [-0.5, 0])
+    divergence_field = -divergence_field*2
+    
+    # divergence_field has some spots with less intensity which we have to correct
+    divergence_field = np.where(divergence_field > 0.05, 1, divergence_field)
+    
+    # Convert it back into [-0.5, 0] range
+    divergence_field = -divergence_field/2
+    
+    print("divergence_field")
     image.save('outputs/divergence_field.jpg', divergence_field)
 
     return divergence_field

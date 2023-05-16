@@ -3,7 +3,6 @@ import argparse
 import numpy as np
 import pyopencl as cl
 import pyopencl.array as cl_array
-from scipy.ndimage import gaussian_filter
 
 import image
 import divergence_field
@@ -12,7 +11,7 @@ import kernels
 tolerance = 1e-5  # Set desired tolerance
 max_level = 10  # Set your desired maximum level
 
-max_num_cycles = 100
+max_num_cycles = 10
 num_relaxations = 1 # Baseline
 
 # Function to apply multigrid V-cycle
@@ -30,10 +29,6 @@ def multigrid_vcycle(program, queue, u, f, N, M, level, prev_res_norm):
     for i in range(num_relaxations):
         kernels.relax(program, queue, u, u_new, f, N, M)
         u, u_new = u_new, u
-        
-        # output_image = u.get()
-        # output_file = "outputs/relax_" + str(level) + "_" + str(i) + ".jpg"
-        # image.save(output_file, output_image)
 
     if level < max_level:
         # Calculate residual
@@ -50,30 +45,14 @@ def multigrid_vcycle(program, queue, u, f, N, M, level, prev_res_norm):
         res_coarse = cl_array.to_device(queue, np.zeros((halfN, halfM), dtype=np.double))  # Residual at the coarser level
         kernels.restrict(program, queue, f, f_coarse, N, M)
         kernels.restrict(program, queue, res, res_coarse, N, M)
-        
-        # output_image = f_coarse.get()
-        # output_file = "outputs/restrict_f_" + str(level) + ".jpg"
-        # image.save(output_file, output_image)
-        
-        # output_image = res_coarse.get()
-        # output_file = "outputs/restrict_res_" + str(level) + ".jpg"
-        # image.save(output_file, output_image)
 
         # Recursive call
         correction_coarse, res_norm_level = multigrid_vcycle(program, queue, res_coarse, f_coarse, halfN, halfM, level+1, prev_res_norm)
         if res_norm_level < res_norm:
             res_norm = res_norm_level
             
-        # output_image = correction_coarse.get()
-        # output_file = "outputs/correction_coarse_" + str(level) + ".jpg"
-        # image.save(output_file, output_image)
-
         # Apply prolongation
         kernels.prolong(program, queue, correction_coarse, u, N, M)
-        
-        # output_image = u.get()
-        # output_file = "outputs/prolong_" + str(level) + ".jpg"
-        # image.save(output_file, output_image)
 
     # Post-relaxation
     # for _ in range(num_relaxations-level):

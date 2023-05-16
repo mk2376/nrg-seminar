@@ -1,4 +1,3 @@
-opencv-python
 pyopencl
 numpy
 scipy
