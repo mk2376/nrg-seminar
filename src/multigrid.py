@@ -11,7 +11,7 @@ import kernels
 tolerance = 1e-5  # Set desired tolerance
 max_level = 10  # Set your desired maximum level
 
-max_num_cycles = 10
+max_num_cycles = 100
 num_relaxations = 1 # Baseline
 
 # Function to apply multigrid V-cycle
@@ -66,6 +66,7 @@ def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Apply Poisson image editing using multigrid solver.')
     parser.add_argument('input_file', help='Input image file path')
+    parser.add_argument('--filter_value', type=float, default=0.78, help='Filter value for the output image') # if value is 0, filtering is disabled
     args = parser.parse_args()
 
     # Get input file name and extension
@@ -108,6 +109,7 @@ def main():
     # Save intermediate image
     output_image = u.get()
     output_file = "outputs/intermediate_output" + file_extension
+    print("intermediate_output")
     image.save(output_file, output_image)
 
     # Normalize to [0, 1]
@@ -117,9 +119,11 @@ def main():
     output_image = (output_image - 1)*-1
     
     # Filter
-    output_image = np.where(output_image < 0.78, 0, output_image)
+    if args.filter_value != 0.0:
+        output_image = np.where(output_image < args.filter_value, 0, output_image)
     
     output_file = "outputs/final_output" + file_extension
+    print("final_output")
     image.save(output_file, output_image)
 
 # If this script is the main module, run the main function
