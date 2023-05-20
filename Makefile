@@ -18,6 +18,9 @@ run3:
 run4:
 	PYOPENCL_CTX="" python src/multigrid.py assets/world-map.jpg
 
+run5:
+	PYOPENCL_CTX="" python src/multigrid.py assets/colored.jpg --filter_value 0
+
 ## Install dependencies
 deps:
 	pip install -r requirements.txt

@@ -1,15 +1,19 @@
-// OpenCL kernel to perform Jacobi relaxation step (Poisson equation)
+// OpenCL kernel to perform Jacobi relaxation step
 __kernel void relax_kernel(__global double* u, __global double* u_new, __global double* f, int N, int M, double h_x, double h_y) {
     // Calculate the current thread index
     int x = get_global_id(0);
     int y = get_global_id(1);
 
-    if (x > 0 && x < N-1 && y > 0 && y < M-1) {
-        double u_new_value = 0.5f * ((u[(x-1)*M + y] + u[(x+1)*M + y]) / (h_x * h_x) + (u[x*M + (y-1)] + u[x*M + (y+1)]) / (h_y * h_y) + f[x*M + y]) / ((2.0f / (h_x * h_x)) + (2.0f / (h_y * h_y)));
-        u_new[x*M + y] = u_new_value;
-    } else {
-        u_new[x*M + y] = u[x*M + y]; // If you're using Dirichlet boundary conditions, this line can be: u_new[x*M + y] = 0.0f;
-    }
+    double multiplier = 1.4;
+
+    // Symmetric boundary condition
+    double left = x > 0 ? u[(x-1)*M + y] : u[(x+1)*M + y]*multiplier;
+    double right = x < N-1 ? u[(x+1)*M + y] : u[(x-1)*M + y]*multiplier;
+    double down = y > 0 ? u[x*M + (y-1)] : u[x*M + (y+1)]*multiplier;
+    double up = y < M-1 ? u[x*M + (y+1)] : u[x*M + (y-1)]*multiplier;
+
+    double u_new_value = 0.5f * ((left + right) / (h_x * h_x) + (down + up) / (h_y * h_y) + f[x*M + y]) / ((2.0f / (h_x * h_x)) + (2.0f / (h_y * h_y)));
+    u_new[x*M + y] = u_new_value;
 }
 
 // OpenCL kernel to calculate residual
@@ -36,7 +40,7 @@ __kernel void restrict_kernel(__global double* r, __global double* r2, int N, in
     int x = get_global_id(0);
     int y = get_global_id(1);
 
-    float multiplier = 0.25f;
+    double multiplier = 0.25;
     int factor = 2;
 
     int x2 = x*factor;

@@ -97,10 +97,10 @@ def main():
     for i in range(max_num_cycles):
         u, res_norm = multigrid_vcycle(program, queue, u, f, N, M, 0, prev_res_norm)
 
-        print("res_norm", res_norm, "prev_res_norm", prev_res_norm, "res_norm < tolerance", res_norm < tolerance, "res_norm >= prev_res_norm", res_norm >= prev_res_norm)
+        print("res_norm", res_norm, "prev_res_norm", prev_res_norm, "prev_res_norm - res_norm < tolerance", prev_res_norm - res_norm  < tolerance, "res_norm >= prev_res_norm", res_norm >= prev_res_norm)
 
         # Break if the solution has converged or is not improving
-        if res_norm < tolerance or res_norm >= prev_res_norm:
+        if prev_res_norm - res_norm < tolerance or res_norm >= prev_res_norm:
             print("multigrid_vcycle has converged after", i+1, "cycles")
             break
         
