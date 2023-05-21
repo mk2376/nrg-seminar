@@ -46,19 +46,13 @@ __kernel void restrict_kernel(__global double* r, __global double* r2, int N, in
     int x2 = x*factor;
     int y2 = y*factor;
 
-    int halfN = N / factor;
-    int halfM = M / factor;
-
-    // Check if the thread index is within the valid range
-    if (x < halfN && y < halfM) {
-        // Perform the restriction operation by averaging a 2x2 block
-        r2[x*halfM + y] = multiplier * (
-            r[x2*M + y2] + 
-            r[x2*M + (y2 + 1)] +
-            r[(x2 + 1)*M + y2] +
-            r[(x2 + 1)*M + (y2 + 1)]
-        );
-    }
+    // Perform the restriction operation by averaging a 2x2 block
+    r2[x*halfM + y] = multiplier * (
+        r[x2*M + y2] + 
+        r[x2*M + (y2 + 1)] +
+        r[(x2 + 1)*M + y2] +
+        r[(x2 + 1)*M + (y2 + 1)]
+    );
 }
 
 // OpenCL kernel to perform prolongation step
@@ -76,21 +70,18 @@ __kernel void prolong_kernel(__global double* r2, __global double* u, int N, int
     int halfN = N / factor;
     int halfM = M / factor;
 
-    // Check if the thread index is within the valid range
-    if (x < halfN && y < halfM) {
-        // Perform the prolongation operation by bilinear interpolation
-        double c = r2[x*halfM + y]; // center value
+    // Perform the prolongation operation by bilinear interpolation
+    double c = r2[x*halfM + y]; // center value
 
-        double l = x > 0 ? r2[(x-1)*halfM + y] : c; // left value
-        double r = x < halfN - 1 ? r2[(x+1)*halfM + y] : c; // right value
+    double l = x > 0 ? r2[(x-1)*halfM + y] : c; // left value
+    double r = x < halfN - 1 ? r2[(x+1)*halfM + y] : c; // right value
 
-        double t = y > 0 ? r2[x*halfM + (y-1)] : c; // top value
-        double b = y < halfM - 1 ? r2[x*halfM + (y+1)] : c; // bottom value
+    double t = y > 0 ? r2[x*halfM + (y-1)] : c; // top value
+    double b = y < halfM - 1 ? r2[x*halfM + (y+1)] : c; // bottom value
 
-        // Interpolate values
-        u[x2*M + y2] += multiplier * (c + l + t + l*t);
-        u[x2*M + (y2 + 1)] += multiplier * (c + l + b + l*b);
-        u[(x2 + 1)*M + y2] += multiplier * (c + r + t + r*t);
-        u[(x2 + 1)*M + (y2 + 1)] += multiplier * (c + r + b + r*b);
-    }
+    // Interpolate values
+    u[x2*M + y2] += multiplier * (c + l + t + l*t);
+    u[x2*M + (y2 + 1)] += multiplier * (c + l + b + l*b);
+    u[(x2 + 1)*M + y2] += multiplier * (c + r + t + r*t);
+    u[(x2 + 1)*M + (y2 + 1)] += multiplier * (c + r + b + r*b);
 }
