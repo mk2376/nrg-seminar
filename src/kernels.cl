@@ -46,6 +46,8 @@ __kernel void restrict_kernel(__global double* r, __global double* r2, int N, in
     int x2 = x*factor;
     int y2 = y*factor;
 
+    int halfM = M / factor;
+
     // Perform the restriction operation by averaging a 2x2 block
     r2[x*halfM + y] = multiplier * (
         r[x2*M + y2] + 
