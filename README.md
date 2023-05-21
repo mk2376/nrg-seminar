@@ -2,6 +2,8 @@
 
 Scattered data approximation with multigrid relaxation
 
+Repository [link](https://github.com/mk2376/nrg-seminar).
+
 ## Usage
 
 Install deps:
